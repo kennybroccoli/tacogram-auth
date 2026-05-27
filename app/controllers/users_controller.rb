@@ -1,20 +1,21 @@
 class UsersController < ApplicationController
   def new
+    @user = User.new
   end
 
   def create
-    if User.find_by({ "email" => params["email"] }) == nil
-      @user = User.new
-      @user["first_name"] = params["first_name"]
-      @user["last_name"] = params["last_name"]
-      @user["email"] = params["email"]
-      # TODO: encrypt user's password "at rest"
-      @user["password"] = params["password"]
-      @user.save
-      redirect_to "/login"
+    @user = User.new(user_params)
+    if @user.save
+      redirect_to login_path, notice: "Account created. Please log in."
     else
-      flash["notice"] = "Email taken."
-      redirect_to "/users/new"
+      flash[:notice] = @user.errors.full_messages.to_sentence
+      redirect_to new_user_path
     end
+  end
+
+  private
+
+  def user_params
+    params.permit(:first_name, :last_name, :email, :password, :password_confirmation)
   end
 end
